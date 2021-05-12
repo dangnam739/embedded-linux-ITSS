@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/errno.h>
 #include <sys/fcntl.h>
 
-#define FIFO_FILE_PATH "fifofilepath"
-#define READ_FILE_PATH "readfilepath"
+#define FIFO_FILE_PATH "fifo.txt"
+#define READ_FILE_PATH "read.txt"
 #define BUFF_SIZE 256
 
 int func()
@@ -44,7 +45,7 @@ int func()
 
     close(readFd);
     close(fifoFd);
-    unlink(FIFO_FILE_PATH);
+    // unlink(FIFO_FILE_PATH);
 
     return 0;
 }

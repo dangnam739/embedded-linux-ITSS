@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -8,7 +9,7 @@
 #define KEYFILE_PATH "keyfilepath"
 #define PROJ_CHAR 'A'
 
-int func()
+int main()
 {
     int i;
     int shmsize;
@@ -16,11 +17,14 @@ int func()
     key_t keyval;
     int *ptr;
     int *head;
+    pthread_mutex_t pm;
+    pthread_mutexattr_t pmattr;
 
     // ftok to generate unique key
     keyval = ftok(KEYFILE_PATH, (int)PROJ_CHAR);
     shmsize = SHIMSIZE;
 
+    //allocate mutex to shared memory
     //Get the shared memory ID
     if ((shmid = shmget(keyval, shmsize * sizeof(int),
                         IPC_CREAT | 0660)) == -1)
@@ -40,18 +44,22 @@ int func()
         exit(1);
     }
 
-    //Write to the shared memory
-    for (i = 0; i != shmsize; i++)
+    // Lock mutex
+    if (pthread_mutex_lock(&pm) != 0)
     {
-        *ptr++ = i;
-    }
-
-    //Detach the shared memory
-    if (shmdt((void *)head) == -1)
-    {
-        perror("shmdt");
+        perror("pthread_mutex_lock");
         exit(1);
     }
+    printf("mutex lock\n");
+
+    // Unlock mutex
+    if (pthread_mutex_unlock(&pm) != 0)
+    {
+        perror("pthread_mutex_unlock");
+        exit(1);
+    }
+    printf("mutex unlock\n");
+
     //Delete the shared memory
     if (shmctl(shmid, IPC_RMID, 0) == -1)
     {
@@ -59,11 +67,5 @@ int func()
         exit(1);
     }
 
-    return 0;
-}
-
-int main()
-{
-    func();
     return 0;
 }
